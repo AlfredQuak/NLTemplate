@@ -38,10 +38,10 @@ static inline long match_var( const char *text, string & result ) {
     {
         return -1;
     }
-    
+
     const char *var = text + 3;
     const char *cursor = var;
-    
+
     while ( *cursor ) {
         if (cursor[ 0 ] == ' ' &&
             cursor[ 1 ] == '}' &&
@@ -50,14 +50,14 @@ static inline long match_var( const char *text, string & result ) {
             result = string( var, cursor - var );
             return cursor + 3 - text;
         }
-        
+
         if ( !alphanum( *cursor ) ) {
             return -1;
         }
-        
+
         cursor++;
     }
-    
+
     return -1;
 }
 
@@ -76,11 +76,11 @@ static inline long match_tag_with_param( const char *tag, const char *text, stri
     }
 
     const char *param = text + 3 + taglen;
-    
+
     if ( *param != ' ' ) {
         return -1;
     }
-    
+
     param++;
 
     const char *cursor = param;
@@ -97,10 +97,10 @@ static inline long match_tag_with_param( const char *tag, const char *text, stri
         if ( !alphanum( *cursor ) ) {
             return -1;
         }
-        
+
         cursor++;
     }
-    
+
     return -1;
 }
 
@@ -120,21 +120,21 @@ Token Tokenizer::next() {
     static const char * s_block = "block";
     static const char * s_include = "include";
     static const long s_endblock_len = strlen( s_endblock );
-    
+
     if ( peeking ) {
         peeking = false;
         return peek;
     }
-    
+
     Token token;
     token.value.clear();
     peek.value.clear();
     token.type = TOKEN_END;
     peek.type = TOKEN_END;
-    
+
     long textpos = pos;
     long textlen = 0;
-    
+
 a:
     if ( pos < len ) {
         long m = match_tag_with_param( s_block, text + pos, peek.value );
@@ -334,6 +334,10 @@ Loader::~Loader() {
 shared_ptr<char>  LoaderFile::load( const string & name ) {
     FILE *f = fopen( name.c_str(), "rb" );
     fseek( f, 0, SEEK_END );
+    if (f==NULL)    {
+        cout << "Unable to open file:" << name << std::endl;
+        throw 1;
+    }
     long len = ftell( f );
     fseek( f, 0, SEEK_SET );
     char *buffer = (char*) malloc( len + 1 );
@@ -350,7 +354,7 @@ Template::Template( Loader & loader ) : Block( "main" ), loader( loader ) {
 
 void Template::load_recursive( const string & name, vector<Tokenizer> & files, vector<Node*> & nodes ) {
     files.emplace_back( loader.load( name ) );
-    
+
     bool done = false;
     while( !done ) {
         Token token = files.back().next();
@@ -378,7 +382,7 @@ void Template::load_recursive( const string & name, vector<Tokenizer> & files, v
                 break;
         }
     }
-    
+
     files.pop_back();
 }
 
@@ -398,12 +402,12 @@ void Template::clear() {
 
 void Template::load( const string & name ) {
     clear();
-    
+
     vector<Node*> stack;
     stack.push_back( this );
-    
+
     vector<Tokenizer> file_stack;
-    
+
     load_recursive( name, file_stack, stack );
 }
 
