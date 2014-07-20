@@ -27,6 +27,7 @@ static inline bool alphanum( const char c ) {
     ( c >= 'A' && c <= 'Z' ) ||
     ( c >= '0' && c <= '9' ) ||
     ( c == '_' ) ||
+    ( c == '/' ) ||
     ( c == '.' );
 }
 
@@ -108,7 +109,7 @@ static inline long match_tag_with_param( const char *tag, const char *text, stri
 Tokenizer::Tokenizer( const shared_ptr<char> & text ) :
 text_ptr( text ),
 text( text.get() ),
-len( strlen( text.get() ) ),
+len( text ? strlen( text.get() ) : 0 ),
 pos( 0 ),
 peeking( false )
 {
@@ -258,7 +259,7 @@ Block & Node::block( const string & name ) const {
             return *dynamic_cast<Block*>( fragment );
         }
     }
-    throw 0;
+    throw "Block not found";
 }
 
 
